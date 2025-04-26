@@ -16,6 +16,7 @@ API_TOKEN = os.getenv("BOT_TOKEN")
 class Form(StatesGroup):
     gender = State()
     name = State()
+    second_name = State()
 
 # Клавиатура выбора пола
 gender_kb = ReplyKeyboardMarkup(
@@ -39,17 +40,34 @@ async def gender_chosen(message: Message, state: FSMContext):
         return await message.answer("Пожалуйста, выбери вариант с клавиатуры.")
     await state.update_data(gender=message.text)
     await message.answer("Как тебя зовут?", reply_markup=ReplyKeyboardRemove())
-    await state.set_state(Form.name)
+    if message.text == "👦 Мальчик":
+        await state.set_state(Form.name)
+    else:
+        await state.set_state(Form.second_name)
 
 # Обработка имени
 async def name_chosen(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
     data = await state.get_data()
     await message.answer(
-        f"Приятно познакомиться, <b>{data['name']}</b>!\n"
+        f"Приятно познакомиться имя, <b>{data['name']}</b>!\n"
         f"Ты выбрал: {data['gender'].lower()} 😎",
         parse_mode=ParseMode.HTML
     )
+    print(11)
+    await state.clear()
+
+
+# Обработка фамилии
+async def second_name_chosen(message: Message, state: FSMContext):
+    await state.update_data(second_name=message.text)
+    data = await state.get_data()
+    await message.answer(
+        f"Приятно познакомиться фамилия, <b>{data['second_name']}</b>!\n"
+        f"Ты выбрал: {data['gender'].lower()} 😎",
+        parse_mode=ParseMode.HTML
+    )
+    print(22)
     await state.clear()
 
 # /cancel
@@ -66,6 +84,7 @@ async def main():
     dp.message.register(cancel_handler, F.text == "/cancel")
     dp.message.register(gender_chosen, Form.gender)
     dp.message.register(name_chosen, Form.name)
+    dp.message.register(second_name_chosen, Form.second_name)
 
     await dp.start_polling(bot)
 
